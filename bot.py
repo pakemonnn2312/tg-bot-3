@@ -26,7 +26,7 @@ dp.include_router(router)
 async def start_command(message: Message):
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Переглянути приклади📸")],
+            [KeyboardButton(text="Каталог")],          # 🔄 змінено
             [KeyboardButton(text="Про нас"), KeyboardButton(text="Контакти📞")],
         ],
         resize_keyboard=True,
@@ -38,21 +38,47 @@ async def start_command(message: Message):
         reply_markup=keyboard,
     )
 
-@router.message(F.text == "Переглянути приклади📸")
-async def show_examples(message: Message):
+# --- НОВИЙ handler для «Каталог» ---
+from aiogram.types import CallbackQuery
+
+@router.message(F.text == "Каталог")
+async def show_catalog(message: Message):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(
-                text="📷 Переглянути приклади робіт",
-                url="https://photos.app.goo.gl/1KzH9n9EnSGQjJrJ9"
-            )]
+            [
+                InlineKeyboardButton(text="💰 Ціна", callback_data="show_price")
+            ],
+            [
+                InlineKeyboardButton(
+                    text="📸 Приклади робіт",
+                    url="https://photos.app.goo.gl/1KzH9n9EnSGQjJrJ9"
+                )
+            ]
         ]
     )
+
     await message.answer(
-        "🔍 Хочете побачити, як виглядає результат нашої роботи?\n"
-        "Перегляньте реальні фото встановлених бетонних огорож 👇",
-        reply_markup=keyboard
+        "<b>📂 Каталог послуг</b>\n\n"
+        "Оберіть, що саме вас цікавить:",
+        reply_markup=keyboard,
+        parse_mode="HTML"
     )
+
+
+@router.callback_query(F.data == "show_price")
+async def send_price(callback: CallbackQuery):
+    await callback.message.answer(
+        "<b>💰 Орієнтовні ціни на бетонні огорожі:</b>\n\n"
+        "🔹 Секція 2м х 0.5м (гладка): <b>500 грн</b>\n"
+        "🔹 Секція 2м х 0.5м (з орнаментом): <b>550 грн</b>\n"
+        "🔹 Стовп 2м: <b>350 грн</b>\n"
+        "🔹 Монтаж 1 секції: <b>200 грн</b>\n"
+        "🔹 Доставка в межах району: <b>від 500 грн</b>\n\n"
+        "<i>Ціни орієнтовні. Для точного розрахунку — зателефонуйте або напишіть нам 📞</i>",
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
 
 @router.message(F.text == "Про нас")
 async def about_us(message: Message):
